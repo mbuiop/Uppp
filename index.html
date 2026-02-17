@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ربات هوشمند پیشرفته</title>
+    <!-- Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Vazirmatn', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* پس‌زمینه متحرک */
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .background span {
+            position: absolute;
+            display: block;
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            animation: animate 25s linear infinite;
+            bottom: -150px;
+        }
+
+        @keyframes animate {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-1000px) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* کانتینر اصلی با افکت شیشه‌ای */
+        .glass-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* هدر شیشه‌ای */
+        .glass-header {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 30px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .user-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        /* منوی شیشه‌ای */
+        .glass-menu {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 30px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+        }
+
+        .menu-item {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px 10px;
+            text-align: center;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .menu-item i {
+            font-size: 32px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .menu-item span {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        /* کارت‌های شیشه‌ای برای آگهی‌ها */
+        .jobs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .job-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 25px;
+            padding: 20px;
+            color: white;
+            transition: all 0.3s ease;
+            animation: cardAppear 0.5s ease-out;
+        }
+
+        @keyframes cardAppear {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .job-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .job-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .job-category {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 12px;
+        }
+
+        .job-description {
+            margin: 15px 0;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        .job-meta {
+            display: flex;
+            gap: 15px;
+            margin: 15px 0;
+            font-size: 13px;
+        }
+
+        .job-meta i {
+            margin-left: 5px;
+        }
+
+        .job-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .job-employer {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .job-employer i {
+            font-size: 20px;
+        }
+
+        .job-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 13px;
+            backdrop-filter: blur(5px);
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+
+        /* مودال شیشه‌ای */
+        .glass-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .glass-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            width: 90%;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 30px;
+            padding: 30px;
+            color: white;
+            transform: translateY(-50px);
+            transition: all 0.3s;
+        }
+
+        .glass-modal.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-close {
+            font-size: 24px;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            color: white;
+            font-size: 16px;
+            font-family: 'Vazirmatn', sans-serif;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* بخش چت */
+        .chat-container {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 20px;
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .message {
+            display: flex;
+            margin-bottom: 15px;
+            animation: messageAppear 0.3s;
+        }
+
+        @keyframes messageAppear {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            color: white;
+            font-size: 16px;
+        }
+
+        .chat-input button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .chat-input button:hover {
+            transform: scale(1.1);
+        }
+
+        /* بخش رفرال */
+        .referral-section {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .referral-code {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .referral-code input {
+            flex: 1;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            color: white;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .referral-code button {
+            padding: 0 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 15px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .referral-code button:hover {
+            transform: scale(1.05);
+        }
+
+        /* پنل مدیریت */
+        .admin-section {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .admin-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .admin-tab {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            color: white;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+
+        .admin-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .admin-tab:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .admin-content {
+            display: none;
+        }
+
+        .admin-content.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* نوتیفیکیشن */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 15px 25px;
+            color: white;
+            transform: translateX(400px);
+            transition: all 0.3s;
+            z-index: 2000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        /* ریسپانسیو */
+        @media (max-width: 768px) {
+            .glass-container {
+                padding: 10px;
+            }
+            
+            .glass-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .user-stats {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .menu-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* اسکرول بار */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <!-- پس‌زمینه متحرک -->
+    <div class="background" id="background"></div>
+
+    <!-- کانتینر اصلی -->
+    <div class="glass-container">
+        <!-- هدر شیشه‌ای -->
+        <div class="glass-header">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div>
+                    <h2 id="userName">کاربر مهمان</h2>
+                    <p id="userJoinDate">عضو از امروز</p>
+                </div>
+            </div>
+            <div class="user-stats" id="userStats">
+                <div class="stat-item">
+                    <div class="stat-value" id="userPoints">0</div>
+                    <div class="stat-label">امتیاز</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="userReferrals">0</div>
+                    <div class="stat-label">دعوت‌ها</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="userJobs">0</div>
+                    <div class="stat-label">آگهی‌ها</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- منوی شیشه‌ای -->
+        <div class="glass-menu">
+            <div class="menu-grid" id="mainMenu">
+                <!-- دکمه‌ها با JavaScript پر می‌شوند -->
+            </div>
+        </div>
+
+        <!-- محتوای اصلی -->
+        <div id="mainContent"></div>
+    </div>
+
+    <!-- مودال‌ها -->
+    <div class="glass-modal" id="jobModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>ثبت آگهی شغلی</h2>
+                <div class="modal-close" onclick="closeModal('jobModal')">✕</div>
+            </div>
+            <div class="modal-body">
+                <form id="jobForm">
+                    <div class="form-group">
+                        <label>عنوان شغل</label>
+                        <input type="text" id="jobTitle" placeholder="مثال: برنامه‌نویس پایتون" required>
+                    </div>
+                    <div class="form-group">
+                        <label>توضیحات</label>
+                        <textarea id="jobDescription" rows="4" placeholder="توضیحات کامل شغل..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>دسته‌بندی</label>
+                        <select id="jobCategory">
+                            <option value="فناوری اطلاعات">فناوری اطلاعات</option>
+                            <option value="فروش">فروش</option>
+                            <option value="خدمات">خدمات</option>
+                            <option value="آموزش">آموزش</option>
+                            <option value="سایر">سایر</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>حقوق</label>
+                        <input type="text" id="jobSalary" placeholder="مثال: ۵۰ میلیون تومان">
+                    </div>
+                    <div class="form-group">
+                        <label>موقعیت مکانی</label>
+                        <input type="text" id="jobLocation" placeholder="مثال: تهران">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 15px;">ثبت آگهی</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-modal" id="resumeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>ثبت رزومه</h2>
+                <div class="modal-close" onclick="closeModal('resumeModal')">✕</div>
+            </div>
+            <div class="modal-body">
+                <form id="resumeForm">
+                    <div class="form-group">
+                        <label>نام و نام خانوادگی</label>
+                        <input type="text" id="resumeName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>مهارت‌ها (با کاما جدا کنید)</label>
+                        <input type="text" id="resumeSkills" placeholder="پایتون, جاوااسکریپت, ..." required>
+                    </div>
+                    <div class="form-group">
+                        <label>سابقه کار</label>
+                        <textarea id="resumeExperience" rows="3" placeholder="سابقه کاری خود را توضیح دهید..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>تحصیلات</label>
+                        <input type="text" id="resumeEducation" placeholder="مثال: لیسانس کامپیوتر" required>
+                    </div>
+                    <div class="form-group">
+                        <label>شغل مورد نظر</label>
+                        <input type="text" id="resumeDesiredJob" placeholder="مثال: برنامه‌نویس ارشد" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 15px;">ثبت رزومه</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-modal" id="chatModal">
+        <div class="modal-content" style="max-width: 600px; height: 600px;">
+            <div class="modal-header">
+                <h2>چت با هوش مصنوعی</h2>
+                <div class="modal-close" onclick="closeModal('chatModal')">✕</div>
+            </div>
+            <div class="modal-body" style="height: calc(100% - 80px);">
+                <div class="chat-container">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="message bot">
+                            <div class="message-content">
+                                سلام! من هوش مصنوعی هستم. هر سوالی دارید بپرسید.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-input">
+                        <input type="text" id="chatInput" placeholder="سوال خود را بپرسید..." onkeypress="if(event.key==='Enter') sendMessage()">
+                        <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-modal" id="referralModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>سیستم دعوت از دوستان</h2>
+                <div class="modal-close" onclick="closeModal('referralModal')">✕</div>
+            </div>
+            <div class="modal-body">
+                <div class="referral-section">
+                    <h3>لینک دعوت اختصاصی شما</h3>
+                    <div class="referral-code">
+                        <input type="text" id="referralLink" readonly value="https://t.me/signaliiii_bot?start=">
+                        <button onclick="copyReferralLink()">
+                            <i class="fas fa-copy"></i> کپی
+                        </button>
+                    </div>
+                    <p style="margin-top: 15px;">با هر دعوت ۱۰ امتیاز بگیرید!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-modal" id="adminModal">
+        <div class="modal-content" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h2>پنل مدیریت</h2>
+                <div class="modal-close" onclick="closeModal('adminModal')">✕</div>
+            </div>
+            <div class="modal-body">
+                <div class="admin-tabs" id="adminTabs">
+                    <div class="admin-tab active" onclick="showAdminTab('stats')">📊 آمار</div>
+                    <div class="admin-tab" onclick="showAdminTab('train')">🎓 آموزش</div>
+                    <div class="admin-tab" onclick="showAdminTab('bulk')">📁 آپلود</div>
+                    <div class="admin-tab" onclick="showAdminTab('users')">👥 کاربران</div>
+                    <div class="admin-tab" onclick="showAdminTab('unanswered')">❓ بی‌پاسخ</div>
+                </div>
+                
+                <div class="admin-content active" id="statsTab">
+                    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(2,1fr); gap: 15px; margin-bottom: 20px;">
+                        <div class="stat-card" style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px;">
+                            <div class="stat-value" id="totalUsers">0</div>
+                            <div>کل کاربران</div>
+                        </div>
+                        <div class="stat-card" style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px;">
+                            <div class="stat-value" id="activeToday">0</div>
+                            <div>فعال امروز</div>
+                        </div>
+                        <div class="stat-card" style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px;">
+                            <div class="stat-value" id="totalKnowledge">0</div>
+                            <div>دانش AI</div>
+                        </div>
+                        <div class="stat-card" style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px;">
+                            <div class="stat-value" id="unansweredCount">0</div>
+                            <div>سوال بی‌پاسخ</div>
+                        </div>
+                    </div>
+                    
+                    <h3>پراستفاده‌ترین دانش‌ها</h3>
+                    <div id="topUsed"></div>
+                </div>
+                
+                <div class="admin-content" id="trainTab">
+                    <h3>آموزش تکی</h3>
+                    <div class="form-group">
+                        <label>سوال</label>
+                        <input type="text" id="trainQuestion" placeholder="سوال را وارد کنید">
+                    </div>
+                    <div class="form-group">
+                        <label>جواب</label>
+                        <textarea id="trainAnswer" rows="4" placeholder="جواب را وارد کنید"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>دسته‌بندی</label>
+                        <input type="text" id="trainCategory" placeholder="دسته‌بندی">
+                    </div>
+                    <button class="btn btn-primary" onclick="trainAI()">آموزش</button>
+                </div>
+                
+                <div class="admin-content" id="bulkTab">
+                    <h3>آموزش دسته‌جمعی</h3>
+                    <p>فرمت: سوال | جواب (هر خط یک مورد)</p>
+                    <div class="form-group">
+                        <textarea id="bulkText" rows="10" placeholder="کوروش کبیر که بود | کوروش بزرگ بنیانگذار هخامنشیان بود
+داریوش چه کرد | جاده شاهی را ساخت"></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="bulkTrain()">آموزش دسته‌جمعی</button>
+                </div>
+                
+                <div class="admin-content" id="usersTab">
+                    <h3>مدیریت کاربران</h3>
+                    <div id="usersList"></div>
+                </div>
+                
+                <div class="admin-content" id="unansweredTab">
+                    <h3>سوالات بی‌پاسخ</h3>
+                    <div id="unansweredList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نوتیفیکیشن -->
+    <div class="notification" id="notification">
+        <span id="notificationMessage"></span>
+    </div>
+
+    <script>
+        // تنظیمات
+        const Telegram = window.Telegram.WebApp;
+        Telegram.expand();
+        Telegram.enableClosingConfirmation();
+        
+        let userId = null;
+        let isAdmin = false;
+        let currentJobs = [];
+        let currentResumes = [];
+        
+        // ================ راه‌اندازی ================
+        async function init() {
+            try {
+                // دریافت اطلاعات کاربر از Telegram
+                const initData = Telegram.initData;
+                const user = Telegram.initDataUnsafe.user;
+                
+                if (user) {
+                    userId = user.id;
+                    document.getElementById('userName').textContent = user.first_name || 'کاربر';
+                    document.getElementById('userAvatar').innerHTML = user.photo_url ? 
+                        `<img src="${user.photo_url}" style="width:100%;height:100%;border-radius:50%;">` : 
+                        '<i class="fas fa-user"></i>';
+                    
+                    // دریافت اطلاعات کامل کاربر
+                    await loadUserData(userId);
+                }
+                
+                // ایجاد دکمه‌های منو
+                createMenu();
+                
+                // بارگذاری آگهی‌ها
+                loadJobs();
+                
+            } catch (error) {
+                showNotification('خطا در اتصال به سرور', 'error');
+            }
+        }
+        
+        // ================ بارگذاری اطلاعات کاربر ================
+        async function loadUserData(userId) {
+            try {
+                const response = await fetch(`/api/user/${userId}`);
+                const userData = await response.json();
+                
+                document.getElementById('userPoints').textContent = userData.points || 0;
+                document.getElementById('userReferrals').textContent = userData.referral_count || 0;
+                document.getElementById('userJobs').textContent = userData.jobs_count || 0;
+                
+                if (userData.joined_at) {
+                    const joinDate = new Date(userData.joined_at);
+                    document.getElementById('userJoinDate').textContent = `عضو از ${joinDate.toLocaleDateString('fa-IR')}`;
+                }
+                
+                // لینک رفرال
+                document.getElementById('referralLink').value = userData.referral_link || `https://t.me/signaliiii_bot?start=${userData.referral_code}`;
+                
+                // بررسی ادمین بودن
+                isAdmin = userData.is_admin || false;
+                
+            } catch (error) {
+                console.error('Error loading user data:', error);
+            }
+        }
+        
+        // ================ ایجاد منو ================
+        function createMenu() {
+            const menuItems = [
+                { icon: 'fas fa-briefcase', text: 'ثبت شغل', action: 'showJobModal' },
+                { icon: 'fas fa-file-alt', text: 'ثبت رزومه', action: 'showResumeModal' },
+                { icon: 'fas fa-search', text: 'جستجوی کار', action: 'searchJobs' },
+                { icon: 'fas fa-list', text: 'کارهای من', action: 'myJobs' },
+                { icon: 'fas fa-comment-dots', text: 'هوش مصنوعی', action: 'showChatModal' },
+                { icon: 'fas fa-gift', text: 'دعوت دوستان', action: 'showReferralModal' },
+                { icon: 'fas fa-user-circle', text: 'پروفایل', action: 'showProfile' }
+            ];
+            
+            if (isAdmin) {
+                menuItems.push({ icon: 'fas fa-cog', text: 'پنل مدیریت', action: 'showAdminModal' });
+            }
+            
+            const menuGrid = document.getElementById('mainMenu');
+            menuGrid.innerHTML = '';
+            
+            menuItems.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'menu-item';
+                div.onclick = () => window[item.action]();
+                div.innerHTML = `
+                    <i class="${item.icon}"></i>
+                    <span>${item.text}</span>
+                `;
+                menuGrid.appendChild(div);
+            });
+        }
+        
+        // ================ نمایش مودال‌ها ================
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+        
+        function showJobModal() {
+            showModal('jobModal');
+        }
+        
+        function showResumeModal() {
+            showModal('resumeModal');
+        }
+        
+        function showChatModal() {
+            showModal('chatModal');
+        }
+        
+        function showReferralModal() {
+            showModal('referralModal');
+        }
+        
+        function showAdminModal() {
+            if (isAdmin) {
+                showModal('adminModal');
+                loadAdminStats();
+            } else {
+                showNotification('دسترسی غیرمجاز!', 'error');
+            }
+        }
+        
+        // ================ سیستم چت هوش مصنوعی ================
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // نمایش پیام کاربر
+            addMessage(message, true);
+            input.value = '';
+            
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message, user_id: userId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.answer) {
+                    addMessage(data.answer, false);
+                } else {
+                    addMessage('❌ متأسفم! هنوز جواب این سوال را یاد نگرفته‌ام. این سوال برای مدیر ارسال شد.', false);
+                }
+            } catch (error) {
+                addMessage('⚠️ خطا در ارتباط با سرور', false);
+            }
+        }
+        
+        function addMessage(text, isUser = false) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+            messageDiv.innerHTML = `<div class="message-content">${text}</div>`;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        // ================ سیستم آگهی‌های شغلی ================
+        document.getElementById('jobForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const jobData = {
+                employer_id: userId,
+                title: document.getElementById('jobTitle').value,
+                description: document.getElementById('jobDescription').value,
+                category: document.getElementById('jobCategory').value,
+                salary: document.getElementById('jobSalary').value,
+                location: document.getElementById('jobLocation').value
+            };
+            
+            try {
+                const response = await fetch('/api/jobs', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(jobData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification('✅ آگهی با موفقیت ثبت شد');
+                    closeModal('jobModal');
+                    loadJobs();
+                }
+            } catch (error) {
+                showNotification('❌ خطا در ثبت آگهی', 'error');
+            }
+        });
+        
+        // ================ بارگذاری آگهی‌ها ================
+        async function loadJobs(category = 'all', page = 1) {
+            try {
+                const url = `/api/jobs?category=${category}&page=${page}&limit=20`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                currentJobs = data.jobs;
+                displayJobs(currentJobs);
+                
+            } catch (error) {
+                console.error('Error loading jobs:', error);
+            }
+        }
+        
+        function displayJobs(jobs) {
+            const contentDiv = document.getElementById('mainContent');
+            
+            if (!jobs || jobs.length === 0) {
+                contentDiv.innerHTML = `
+                    <div style="text-align: center; color: white; padding: 50px;">
+                        <i class="fas fa-briefcase" style="font-size: 64px; margin-bottom: 20px;"></i>
+                        <h3>هیچ آگهی فعالی وجود ندارد</h3>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<div class="jobs-grid">';
+            
+            jobs.forEach(job => {
+                html += `
+                    <div class="job-card" onclick="showJobDetails(${job.id})">
+                        <div class="job-header">
+                            <span class="job-title">${job.title}</span>
+                            <span class="job-category">${job.category || 'عمومی'}</span>
+                        </div>
+                        <div class="job-description">${job.description || 'توضیحات...'}</div>
+                        <div class="job-meta">
+                            ${job.salary ? `<span><i class="fas fa-money-bill-wave"></i> ${job.salary}</span>` : ''}
+                            ${job.location ? `<span><i class="fas fa-map-marker-alt"></i> ${job.location}</span>` : ''}
+                        </div>
+                        <div class="job-footer">
+                            <div class="job-employer">
+                                <i class="fas fa-user-circle"></i>
+                                <span>${job.employer || 'کارفرما'}</span>
+                            </div>
+                            <div class="job-actions">
+                                <span class="btn" onclick="event.stopPropagation(); applyJob(${job.id})">
+                                    <i class="fas fa-paper-plane"></i> درخواست
+                                </span>
+                                <span class="btn">
+                                    <i class="fas fa-eye"></i> ${job.views || 0}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            contentDiv.innerHTML = html;
+        }
+        
+        function searchJobs() {
+            loadJobs();
+        }
+        
+        function myJobs() {
+            const userJobs = currentJobs.filter(job => job.employer_id == userId);
+            displayJobs(userJobs);
+        }
+        
+        // ================ سیستم رفرال ================
+        function copyReferralLink() {
+            const linkInput = document.getElementById('referralLink');
+            linkInput.select();
+            document.execCommand('copy');
+            showNotification('✅ لینک دعوت کپی شد');
+        }
+        
+        // ================ پنل مدیریت ================
+        async function loadAdminStats() {
+            try {
+                const response = await fetch(`/api/admin/stats?admin_id=${userId}`);
+                const stats = await response.json();
+                
+                document.getElementById('totalUsers').textContent = stats.users?.total || 0;
+                document.getElementById('activeToday').textContent = stats.users?.active_today || 0;
+                document.getElementById('totalKnowledge').textContent = stats.ai?.total_knowledge || 0;
+                document.getElementById('unansweredCount').textContent = stats.ai?.unanswered || 0;
+                
+                if (stats.ai?.top_used) {
+                    const topUsedDiv = document.getElementById('topUsed');
+                    topUsedDiv.innerHTML = stats.ai.top_used.map(item => 
+                        `<div style="background:rgba(255,255,255,0.1); padding:10px; margin:5px 0; border-radius:10px;">
+                            ${item.question} - ${item.times_used} بار
+                        </div>`
+                    ).join('');
+                }
+                
+            } catch (error) {
+                console.error('Error loading admin stats:', error);
+            }
+        }
+        
+        async function trainAI() {
+            const question = document.getElementById('trainQuestion').value;
+            const answer = document.getElementById('trainAnswer').value;
+            const category = document.getElementById('trainCategory').value;
+            
+            if (!question || !answer) {
+                showNotification('لطفاً سوال و جواب را وارد کنید', 'warning');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/admin/train', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        admin_id: userId,
+                        question: question,
+                        answer: answer,
+                        category: category
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification('✅ آموزش با موفقیت انجام شد');
+                    document.getElementById('trainQuestion').value = '';
+                    document.getElementById('trainAnswer').value = '';
+                } else {
+                    showNotification(result.message || '❌ خطا در آموزش', 'error');
+                }
+            } catch (error) {
+                showNotification('❌ خطا در ارتباط با سرور', 'error');
+            }
+        }
+        
+        async function bulkTrain() {
+            const text = document.getElementById('bulkText').value;
+            
+            if (!text) {
+                showNotification('لطفاً متن را وارد کنید', 'warning');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/admin/bulk-train', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        admin_id: userId,
+                        text: text
+                    })
+                });
+                
+                const result = await response.json();
+                
+                showNotification(`✅ ${result.added?.length || 0} مورد اضافه شد`);
+                document.getElementById('bulkText').value = '';
+                
+            } catch (error) {
+                showNotification('❌ خطا در آموزش دسته‌جمعی', 'error');
+            }
+        }
+        
+        function showAdminTab(tabName) {
+            // تغییر تب‌ها
+            document.querySelectorAll('.admin-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.admin-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`${tabName}Tab`).classList.add('active');
+        }
+        
+        // ================ نوتیفیکیشن ================
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            const messageSpan = document.getElementById('notificationMessage');
+            
+            messageSpan.textContent = message;
+            notification.classList.add('show');
+            
+            if (type === 'error') {
+                notification.style.background = 'rgba(255, 99, 71, 0.2)';
+            } else {
+                notification.style.background = 'rgba(255, 255, 255, 0.2)';
+            }
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // ================ راه‌اندازی اولیه ================
+        document.addEventListener('DOMContentLoaded', init);
+        
+        // ایجاد پس‌زمینه متحرک
+        function createBackground() {
+            const background = document.getElementById('background');
+            for (let i = 0; i < 50; i++) {
+                const span = document.createElement('span');
+                span.style.left = Math.random() * 100 + '%';
+                span.style.animationDelay = Math.random() * 20 + 's';
+                span.style.width = span.style.height = Math.random() * 30 + 10 + 'px';
+                background.appendChild(span);
+            }
+        }
+        
+        createBackground();
+    </script>
+</body>
+                      </html>
